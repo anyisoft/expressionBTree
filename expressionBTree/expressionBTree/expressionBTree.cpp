@@ -1,7 +1,8 @@
 // expressionBTree.cpp : 定义控制台应用程序的入口点。
 //
 
-#include "stdafx.h"
+//#include "stdafx.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <string.h>
@@ -261,34 +262,127 @@ void inorder2preorder(const char *inorder_expression, char *preorder_expression)
 	}
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+/**
+ * 后缀表达式建树过程
+ */
+btree postTree(char s[], int len)
+{
+	int i;
+	btree p, root;
+
+	struct stack {
+		treenode *vec[256];
+		int top;
+	};
+	struct stack q;
+	q.top = -1;
+
+	// 遍历字符串
+	// 若为操作数，则生成结点并将指向该结点的指针入栈
+	// 若为运算符，则生成结点并从栈中弹出两个指向操作数结点的指针作为右、左孩子，然后将新生成的结点入栈
+	for (i = 0; i < len; i++) {
+		if (s[i] == '+' || s[i] == '-' || s[i] == '*' || s[i] == '/') {
+			p = (btree)malloc(sizeof(treenode));
+			p->data = s[i];
+			p->right = q.vec[q.top--];
+			p->left = q.vec[q.top--];
+			q.vec[++q.top] = p;
+		}
+		else {
+			p = (btree)malloc(sizeof(treenode));
+			p->data = s[i];
+			p->left = NULL;
+			p->right = NULL;
+			q.vec[++q.top] = p;
+		}
+	}
+
+	root = q.vec[q.top]; // 这一步很关键，因为该二叉树的根结点最后被保留在了栈中
+	return root;
+}
+
+/**
+ * 前缀表达式建树过程
+ * 由于操作数在叶节点位置和前缀表达式的特点，
+ * 其建树过程与后缀表达式一致，
+ * 只是扫描方向相反
+ */
+btree preTree(char s[], int len)
+{
+	int i;
+	btree p, root;
+
+	struct stack {
+		treenode *vec[256];
+		int top;
+	};
+	struct stack q;
+	q.top = -1;
+
+	// 遍历字符串
+	// 若为操作数，则生成结点并将指向该结点的指针入栈
+	// 若为运算符，则生成结点并从栈中弹出两个指向操作数结点的指针作为左、右孩子，然后将新生成的结点入栈
+	for (i = len-1; i >= 0; i--) {
+		if (s[i] == '+' || s[i] == '-' || s[i] == '*' || s[i] == '/') {
+			p = (btree)malloc(sizeof(treenode));
+			p->data = s[i];
+			p->left = q.vec[q.top--];
+			p->right = q.vec[q.top--];
+			q.vec[++q.top] = p;
+		}
+		else {
+			p = (btree)malloc(sizeof(treenode));
+			p->data = s[i];
+			p->left = NULL;
+			p->right = NULL;
+			q.vec[++q.top] = p;
+		}
+	}
+
+	root = q.vec[q.top]; // 这一步很关键，因为该二叉树的根结点最后被保留在了栈中
+	return root;
+}
+
+//int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
 	btree root = NULL;
 	int result;
+	int len;
 
 	// 表达式二叉树结点数据
 	// int data[8] = { ' ', '-', '*', '*', '5', '6', '4', '3'};
 	int data[100];
 
 	// 输入中序表达式
-	char inorder_expression[100];
-	char preorder_expression[100];
-	printf("please input the order expression ==> ");
-	gets(inorder_expression);
+	// char inorder_expression[100];
+	// char preorder_expression[100];
+	char postorder_expression[100];
+	// printf("please input the inorder expression ==> ");
+	// gets(inorder_expression);
+	// printf("please input the preorder expression ==> ");
+	// gets(preorder_expression);
+	printf("please input the postorder expression ==> ");
+	gets(postorder_expression);
 
 	// 转为前序表达式
-	memset(preorder_expression, 0, sizeof(preorder_expression) );
-	inorder2preorder(inorder_expression, preorder_expression);
-	printf("the preorder expression is: %s", preorder_expression);
+	// memset(preorder_expression, 0, sizeof(preorder_expression) );
+	// inorder2preorder(inorder_expression, preorder_expression);
+	// printf("the preorder expression is: %s", preorder_expression);
 
-	memset(data, 0, sizeof(data) );
-	data[0] = ' ';
+	// memset(data, 0, sizeof(data) );
+	// data[0] = ' ';
 	// strncpy((char*)&data[1], preorder_expression, strlen(preorder_expression) );
-	for (int i = 0; i < strlen(preorder_expression); i++) {
-		data[i+1] = preorder_expression[i];
-	}
+	// for (int i = 0; i < strlen(preorder_expression); i++) {
+	// 	data[i+1] = preorder_expression[i];
+	// }
 
-	root = createbtree(data, 1);
+	// root = createbtree(data, 1);
+
+	// len = strlen(preorder_expression);
+	// root = preTree(preorder_expression, len);
+	len = strlen(postorder_expression);
+	root = postTree(postorder_expression, len);
 
 	printf("中序表达式：");
 	inorder(root);
