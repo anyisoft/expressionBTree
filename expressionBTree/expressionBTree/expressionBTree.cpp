@@ -343,6 +343,66 @@ btree preTree(char s[], int len)
 	return root;
 }
 
+/**
+ * 中序表达式建树过程(递归)
+ * s -- 字符串的首地址
+ * i -- 子串起始位置
+ * j -- 子串终止位置
+ * 当 i==j 时，子串只有一个字符时，即叶子节点，创建只有一个根节点的二叉树并返回
+ * 当 i!=j 时，
+ *   根据运算规则(先乘除后加减)，在串中查找'+'和'-'，以最后的'+'或'-'为根(体现从左到右的原则)，将串分为两部分；
+ *   如果没有'+'或'-'时，则进一步查找'*'或'/'(体现先乘除后加减)，同样以最后的运算符为根，将串分为两部分；
+ *   即左子树和右子树。创建一个根节点，将找到的运算符放入。递归调用自身进入左子树的建树过程，之后同样创建右子树。
+ * remark: 目前没有处理括号()
+ */
+btree inTree(char s[], int i, int j)
+{
+	// 动态生成的树节点
+	btree p;
+	int k, flag = 0, pos;
+
+	if (i == j) {
+		p = (btree)malloc(sizeof(treenode));
+		p->data = s[i];
+		p->left = NULL;
+		p->right = NULL;
+
+		return  p;
+	}
+
+	// 以下是i != j 的情况
+
+	// 从左往右找最后一个+ 或- (先找+/-体现先乘除后加减的原则)
+	for (k = i; k <= j; k++) {
+		if (s[k] == '+' || s[k] == '-') {
+			flag = 1;
+			pos = k;
+		}
+	}
+
+	if (flag == 0) {
+		for (k = i; k <= j; k++) {
+			if (s[k] == '*' || s[k] == '/') {
+				flag = 1;
+				pos = k;
+			}
+		}
+	}
+
+	// 若flag 不等于0，则以pos 为界将字符串分为左右两部分，分别对应表达式二叉树的左、右子树
+	// 同样以最后的运算符为根，将串分为两部分，创建一个根节点，将找到的运算符放入
+	if (flag != 0) {
+		p = (btree)malloc(sizeof(treenode));
+		p->data = s[pos];
+		p->left = inTree(s, i, pos-1);
+		p->right = inTree(s, pos+1, j);
+
+		return p;
+	}
+
+	return NULL;
+}
+
 //int _tmain(int argc, _TCHAR* argv[])
 int main(int argc, char* argv[])
 {
@@ -355,15 +415,15 @@ int main(int argc, char* argv[])
 	int data[100];
 
 	// 输入中序表达式
-	// char inorder_expression[100];
+	char inorder_expression[100];
 	// char preorder_expression[100];
-	char postorder_expression[100];
-	// printf("please input the inorder expression ==> ");
-	// gets(inorder_expression);
+	// char postorder_expression[100];
+	printf("please input the inorder expression ==> ");
+	gets(inorder_expression);
 	// printf("please input the preorder expression ==> ");
 	// gets(preorder_expression);
-	printf("please input the postorder expression ==> ");
-	gets(postorder_expression);
+	// printf("please input the postorder expression ==> ");
+	// gets(postorder_expression);
 
 	// 转为前序表达式
 	// memset(preorder_expression, 0, sizeof(preorder_expression) );
@@ -381,8 +441,10 @@ int main(int argc, char* argv[])
 
 	// len = strlen(preorder_expression);
 	// root = preTree(preorder_expression, len);
-	len = strlen(postorder_expression);
-	root = postTree(postorder_expression, len);
+	// len = strlen(postorder_expression);
+	// root = postTree(postorder_expression, len);
+	len = strlen(inorder_expression);
+	root = inTree(inorder_expression, 0, len-1);
 
 	printf("中序表达式：");
 	inorder(root);
